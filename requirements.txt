@@ -9,4 +9,4 @@ djangorestframework
 pyjwt
 python-jose
 cryptography
-agora-token-service
+
