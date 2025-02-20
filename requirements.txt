@@ -1,0 +1,11 @@
+pip install django
+pip install django-use-email-as-username 
+python -m pip install -U channels
+python -m pip install Pillow
+python -m pip install -U daphne 
+pip install channels_redis
+pip install redis
+
+pip install djangorestframework  
+pip install pyjwt python-jose cryptography
+pip install agora-token-service
