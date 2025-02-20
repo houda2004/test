@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'ROOM.apps.RoomConfig',
     'ChatBot.apps.ChatbotConfig' ,
 
-
     'channels' ,# pour create des channels
     'rest_framework',#pour on peux uutiliser react avec djngo   
 ]
@@ -81,6 +80,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'PROJECT.urls'
@@ -113,7 +113,7 @@ import dj_database_url
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-'''DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
@@ -123,7 +123,7 @@ import dj_database_url
 DATABASES = {
     'default':dj_database_url.parse(os.environ.get("DATABASE_URL"))
 }
-
+'''
 '''DATABASES = {
     'default':dj_database_url.config(default='postgresql://testchatrealtime_user:EG4vMRvvO4eIhDwYEuY99gWOt0S5NMEi@dpg-curih6a3esus73dp1j30-a.oregon-postgres.render.com/testchatrealtime')
 }'''

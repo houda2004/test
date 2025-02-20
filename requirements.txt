@@ -11,4 +11,5 @@ python-jose
 cryptography
 gunicorn
 dj-database-url
-
+whitenoise
+uvicorn
