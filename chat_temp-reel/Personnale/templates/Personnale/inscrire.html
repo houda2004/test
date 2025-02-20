@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{page}}</title>
+</head>
+<body>
+    {% if messages %}
+    <ul class="messages">
+         {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+         {% endfor %}
+     </ul>
+{% endif %}
+<div>
+{% if page == 'login' %}
+  <div>
+     <h1>Sign in</h1>
+     <h5 >Entre your credential to login </h5>
+  </div>
+ <div>
+    <form method="post">
+       {% csrf_token %}
+       {{ form.as_p }} 
+       {% if form.email.errors %}
+           <div class="error">{{ form.email.errors }}</div>  <!-- Affiche les erreurs spécifiques à l'e-mail -->
+       {% endif %}
+       
+       <input type="submit" value="submit">
+     </form> 
+     <div class="choix">
+            <a href="{% url 'ForgotPassword' %}">Forgot Password ?</a>
+            <a href="{% url 'register' %}">register</a>
+     </div>
+ </div>
+   
+{% elif page == 'register' %} 
+  <div>
+     <h1>register</h1>
+     <h5 >Create Account </h5>
+  </div>
+  <div>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }} 
+        {% if form.email.errors %}
+           <div class="error">{{ form.email.errors }}</div>  <!-- Affiche les erreurs spécifiques à l'e-mail -->
+        {% endif %}
+        <div class="buttons">
+            <button type="submit" name="send_code" class="btn btn-primary">Send Code</button>
+            <button type="submit" name="sign_up" class="btn btn-success">Sign Up</button>
+            <!--<input type="submit" value="submit">-->
+        </div>      
+      </form>
+      <div class="choix">
+         <a href="{% url 'login' %}">Log in</a>
+      </div>
+  </div>
+{% else %} <!--forget password -->
+  
+<div>
+   <h1>Reset password</h1>
+   <h5>Enter your email address and we will send you a verification code to reset your password.</h5>
+</div>
+<div>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }} 
+      {% if form.email.errors %}
+         <div class="error">{{ form.email.errors }}</div>  <!-- Affiche les erreurs spécifiques à l'e-mail -->
+      {% endif %}
+      <div class="buttons">
+          <button type="submit" name="send_code" class="btn btn-primary">Send Code</button>
+          <button type="submit" name="Continue" class="btn btn-success">Continue</button>
+          <!--<input type="submit" value="submit">-->
+      </div>      
+    </form>
+    <div class="choix">
+       <a href="{% url 'login' %}">Log in</a>
+    </div>
+</div>
+
+{% endif %} 
+</div>
+</body>
+</html>

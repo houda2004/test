@@ -1,0 +1,103 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<nav style="background-color:  #a8c9fb;">
+   <div class="logo">  
+      <h3>project</h3>
+  </div>
+     <div class="button">
+        {% if request.user.is_authenticated %}
+          <div class="user-info">
+             <span class="username">Bonjour,{{request.user.first_name}}</span>  
+          </div>
+          <div>
+            <a href=""></a>
+            <a href=""></a>
+          </div>
+           <div>
+               <a href="#" id="notification-bell">
+                   <i class="fa-regular fa-bell"></i>
+                   <span id="notification-count">{{ notifications|length }}</span>
+                  <i class="fa-solid fa-chevron-down" id="chevron-down"></i>
+               </a>
+           
+               <div id="notification-list" style="display: none;">
+                  <ul>
+                      {% for notification in notifications %}
+                          <li>
+                           <a href="{% url 'ROOM:Contactes_user_with_room' room_id=notification.related_room.id  %}">
+                              <p>{{ notification.message }}</p>
+                              <p>{{ notification.timestamp }}</p>
+                           </a>
+                        </li>
+                      {% endfor %}
+                  </ul>
+              </div>
+               <a href=""><button>profile</button></a>
+               <a href="{% url 'logout' %}"><button type="button">logout</button></a>
+           </div>  
+        {%else%}
+           <a href="{% url 'register' %}"><button>register</button></a>
+           <a href="{% url 'login' %}"><button>login</button></a>
+           
+        {% endif %}
+     </div>
+</nav>
+<script>
+  var num_notif= document.getElementById('notification-count')
+  console.log(num_notif)
+  if (num_notif.textContent == 0){
+      var chevron = document.getElementById('chevron-down');
+          chevron.style.display = 'none';  // Modifier la propriété display de style
+  }
+  document.getElementById('notification-bell').addEventListener('click', function(event) {
+   if (num_notif.textContent != 0){
+        event.preventDefault(); // Empêche le lien de rediriger
+        var chevron = document.getElementById('chevron-down');
+        var notificationList = document.getElementById('notification-list');
+
+        if (notificationList.style.display === 'none') {
+            notificationList.style.display = 'block';
+            chevron.classList.remove('fa-chevron-down');
+            chevron.classList.add('fa-chevron-up');
+        } else {
+            notificationList.style.display = 'none';
+            chevron.classList.remove('fa-chevron-up');
+            chevron.classList.add('fa-chevron-down');
+        }
+      }
+    });
+</script>
+<style>
+   #notification-list {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    z-index: 1000;
+    width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+#notification-list ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#notification-list li {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+#notification-list li:last-child {
+    border-bottom: none;
+}
+
+#notification-count {
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+    margin-left: 5px;
+}
+</style>

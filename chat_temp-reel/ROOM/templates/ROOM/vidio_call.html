@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <style>
+      .videos{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap:2em;
+        /*
+         display: grid;
+         grid-template-columns: 1fr;
+         height: 100vh;
+         overflow:hidden;
+        */
+      }
+      .video-palyer{
+        background-color: black;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+
+      }
+    </style>
+      <h1>heloo</h1>
+      <main>
+        <div class="videos">
+            <div>
+                <video id="current_user" class="video-palyer caller"  autoplay playsline></video>
+            </div>
+            <div>
+                <video id="auther_cuser" class="video-palyer resiver"  autoplay playsline></video>
+            </div>
+        </div>
+      </main>
+
+<script>
+  
+let localStream; //camera's video feed and microphone's audio
+let remoteStream;//  connected to auther user will be that remote users camra and in audion data 
+let init = async ()=>{
+    localStream= await navigator.mediaDevices.getUserMedia({video:true,audio:false});//donne access to torn on camera and microphone in the navigater
+    document.getElementById('current_user').srcObject = localStream;
+    createOffer()
+}
+
+let createOffer = async () => {//MemberId
+    //await createPeerConnection(MemberId)
+
+    //let offer = await peerConnection.createOffer()
+    //await peerConnection.setLocalDescription(offer)
+   
+    peerConnection= new RTCPeerConnection()
+    remoteStream= new MediaStream()
+   
+    document.getElementById('auther_cuser').srcObject = remoteStream;
+    //client.sendMessageToPeer({text:JSON.stringify({'type':'offer', 'offer':offer})}, MemberId)
+    
+    let offer = await peerConnection.createOffer()
+    await peerConnection.setLocalDescription(offer)
+    console.log(offer);
+}
+
+
+init();  
+</script>
+</body>
+</html>

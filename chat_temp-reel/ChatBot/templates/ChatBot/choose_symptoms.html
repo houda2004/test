@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choisir les Symptômes</title>
+</head>
+<body>
+    <h1>Maladie: {{ illness.name }}</h1>
+    <p>{{ illness.description }}</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div>
+            {% for symptom in symptoms %}
+                <input type="checkbox" name="symptoms" value="{{ symptom.id }}"> {{ symptom.name }}<br>
+            {% endfor %}
+        </div>
+        <button type="submit">Soumettre</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{% extends 'CHAT_TEMP/main.html' %}
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+{% block content %}
+<header id="header">
+    <div class="make-wellcome-centre color1">
+        <div class="wellcome">
+            <div class="wellcome_texte">
+                   <h1 class="text-3xl font-bold text-blue-600 mb-4"> WELCOME TO OUR LIBRARY </h1>
+                   <h3 class="text-gray-700 mb-4">Enjoy an enjoyable reading experience with us </h3>
+                   <a href="{% url 'ROOM:Contactes_user' %}">Contactes_user</a>
+                   <a href="{% url 'ChatBot:questionnaire' %}">questionnaire</a>
+            </div>
+        </div>
+      </div>
+</header>
+
+{% endblock %}

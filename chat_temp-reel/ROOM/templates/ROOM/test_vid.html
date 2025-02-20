@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <style>
+        #remoteVideo{
+          /*display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap:2em;
+          */
+           
+           display:none;
+           grid-template-columns: 1fr;
+           height: 100vh;
+           overflow:hidden;
+           background-color: rgb(185, 16, 16);
+        }
+        .video-palyer{
+          background-color: black;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        #localVideo{
+            /*position: absolute;*/
+            height: 20vh;
+            left: 0;
+            background-color: black;
+        }
+       .call-controls{
+        margin: 80px;
+       }
+      </style>
+    <!--<video id="localVideo" autoplay playsinline></video>
+    <video id="remoteVideo" ></video>autoplay playsinline-->
+     
+     <div class="video-container">
+        <video id="localVideo" autoplay muted></video>
+        <video id="remoteVideo" autoplay></video>
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXzXNUr2pA83cXri-uzhjN8oSWZAybg65qOw&s" id="remotePlaceholder" class="placeholder">
+    </div>
+    
+    <div class="call-controls">
+        <button id="toggleAudio" class="btn btn-primary">Mute</button>
+        <button id="toggleVideo" class="btn btn-primary">Video Off</button>
+        <button id="endCall" class="btn btn-danger">End Call</button>
+    </div>
+    
+<script>
+
+id_vidie = '{{video_call.id}}';
+const ws = new WebSocket(`ws://${window.location.host}/ws/video-call/${id_vidie}/`);
+
+let localStream;
+let remoteStream;
+let peerConnection;
+const config = {
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+};
+
+// Get elements
+const localVideo = document.getElementById("localVideo");
+const remoteVideo = document.getElementById("remoteVideo");
+const remotePlaceholder = document.getElementById("remotePlaceholder"); // Ajouter cette ligne dans le HTML
+const toggleAudioBtn = document.getElementById("toggleAudio");
+const toggleVideoBtn = document.getElementById("toggleVideo");
+const endCallBtn = document.getElementById("endCall");
+
+let isAudioEnabled = true;
+let isVideoEnabled = true;
+let isCaller = '{{video_call.caller}}'; // Ajouter cette variable depuis le contexte Django
+let person_corant='{{person_courant}}';
+ws.onopen = () => {
+    startCall();  // Appeler startCall une fois la connexion ouverte
+};
+// Modifié : Gestion améliorée des erreurs média
+async function startCall() {
+    try {
+        
+        localStream = await navigator.mediaDevices.getUserMedia({ 
+            video: true, 
+            audio: true 
+        });
+        
+        localVideo.srcObject = localStream;
+        setupPeerConnection();
+        
+        if(isCaller == person_corant) {
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            ws.send(JSON.stringify({ 'type': "offer", 'offer': offer }));
+        }
+       console.log(peerConnection)
+
+    } catch (error) {
+        console.error("Erreur d'accès aux périphériques:", error);
+        ws.send(JSON.stringify({ type: "media_blocked" ,media_blocked:'media_blocked'}));
+        showLocalPlaceholder();
+    }
+}
+
+// Modifié : Création séparée de la connexion peer
+function setupPeerConnection() {
+    peerConnection = new RTCPeerConnection(config);
+    
+    peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+            ws.send(JSON.stringify({ 
+                type: "candidate", 
+                candidate: event.candidate 
+            }));
+        }
+    };
+
+    // Modifié : Gestion améliorée du flux distant
+    peerConnection.ontrack = (event) => {
+        remoteStream = event.streams[0];
+        remoteVideo.srcObject = remoteStream;
+        console.log(remoteStream)
+        const hasVideo = remoteStream.getVideoTracks().length > 0;
+        const videoEnabled = hasVideo && remoteStream.getVideoTracks()[0].enabled;
+        
+        updateRemoteDisplay(hasVideo && videoEnabled);
+    };
+
+    // Ajout des pistes locales
+    localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+    });
+}
+
+// Nouveau : Gestion de l'affichage du placeholder
+function updateRemoteDisplay(showVideo) {
+    if(showVideo) {
+        remoteVideo.style.display = "block";
+        remotePlaceholder.style.display = "none";
+    } else {
+        remoteVideo.style.display = "none";
+        remotePlaceholder.style.display = "block";
+    }
+}
+
+// Nouveau : Placeholder local si permissions refusées
+function showLocalPlaceholder() {
+    localVideo.style.display = "bolck";
+    localVideo.style.backgroundImage = "data:image/jpeg;base64,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";
+    // Ajouter un placeholder local si nécessaire
+}
+
+// Modifié : Gestion des messages WebSocket améliorée
+ws.onmessage = async (event) => {
+    const data = JSON.parse(event.data);
+    console.log(data)
+    try {
+        if (data.type === "offer") {
+            if(!peerConnection) setupPeerConnection();
+            
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            ws.send(JSON.stringify({ type: "answer", answer: answer }));
+            
+        } else if (data.type === "answer") {
+            if (peerConnection.signalingState !== "stable") {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+            }
+            
+        } else if (data.type === "candidate") {
+            if(peerConnection) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+            
+        } else if (data.type === "media_blocked") {
+            updateRemoteDisplay(false);
+        }
+        
+    } catch (error) {
+        console.error("Erreur de traitement du message:", error);
+    }
+};
+
+// 🔴 Toggle Microphone (ajout de la gestion du placeholder)
+toggleAudioBtn.addEventListener("click", () => {
+    isAudioEnabled = !isAudioEnabled;
+    localStream.getAudioTracks().forEach(track => track.enabled = isAudioEnabled);
+    toggleAudioBtn.textContent = isAudioEnabled ? "Mute" : "Unmute";
+    
+    if(!isAudioEnabled && !isVideoEnabled) {
+        showLocalPlaceholder();
+    }
+});
+
+// 🔴 Toggle Camera (ajout de la gestion du placeholder)
+toggleVideoBtn.addEventListener("click", () => {
+    isVideoEnabled = !isVideoEnabled;
+    localStream.getVideoTracks().forEach(track => track.enabled = isVideoEnabled);
+    toggleVideoBtn.textContent = isVideoEnabled ? "Video Off" : "Video On";
+    
+    if(!isVideoEnabled && !isAudioEnabled) {
+        showLocalPlaceholder();
+    } else {
+        localVideo.style.display = "block";
+    }
+});
+
+// Nouveau : Gestion de la fin d'appel
+endCallBtn.addEventListener("click", () => {
+    ws.close();
+    if(peerConnection) peerConnection.close();
+    if(localStream) localStream.getTracks().forEach(track => track.stop());
+    updateRemoteDisplay(false);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //const roomName = "test_room"; // Change this dynamically
+/*id_vidie='{{video_call.id}}'
+const ws = new WebSocket(`ws://${window.location.host}/ws/video-call/${id_vidie}/`);
+
+let localStream;
+let remoteStream;
+let peerConnection;
+const config = {
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+};
+
+// Get video elements
+const localVideo = document.getElementById("localVideo");
+const remoteVideo = document.getElementById("remoteVideo");
+const toggleAudioBtn = document.getElementById("toggleAudio");
+const toggleVideoBtn = document.getElementById("toggleVideo");
+const endCallBtn = document.getElementById("endCall");
+
+let isAudioEnabled = true;
+let isVideoEnabled = true;
+
+ws.onopen = () => {
+    startCall();  // Appeler startCall une fois la connexion ouverte
+};*/
+/*ws.onmessage = async (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.type === "offer") {
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        ws.send(JSON.stringify({ type: "answer", answer: answer }));
+    } else if (data.type === "answer") {
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+    } else if (data.type === "candidate") {
+        await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+    }
+    console.log(data)
+};*/
+/*ws.onmessage = async (event) => {
+    const data = JSON.parse(event.data);
+
+if (data.type === "offer") {
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+    ws.send(JSON.stringify({ type: "answer", answer: answer }));
+} else if (data.type === "answer") {
+    if (peerConnection.signalingState !== "stable") {
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+    } else {
+        console.warn("Ignored redundant answer SDP.");
+    }
+} else if (data.type === "candidate") {
+    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+}
+console.log(data);
+};
+
+async function startCall() {
+    //if (!isVideoEnabled){
+       localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });   
+        // Display the local stream
+       localVideo.srcObject = localStream;
+       console.log(localStream);
+    //}
+    
+    peerConnection = new RTCPeerConnection(config);
+    peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+            ws.send(JSON.stringify({ type: "candidate", candidate: event.candidate }));
+        }
+        console.log(event)
+    };
+    console.log(peerConnection);
+    // When the remote user sends their video
+    peerConnection.ontrack = (event) => {
+        remoteVideo.srcObject = event.streams[0];
+        console.log(event);
+        
+        if (!remoteStream || remoteStream.getVideoTracks().length === 0 || !remoteStream.getVideoTracks()[0].enabled) {//remoteStream.getVideoTracks().length === 0
+            // Aucun flux vidéo : afficher l'image de remplacement
+            remoteVideo.style.display = "block";
+            //remotePlaceholder.style.display = "block";
+        } else {
+            // Il y a une vidéo : afficher normalement
+            //remotePlaceholder.style.display = "none";
+            remoteVideo.style.display = "block";
+            remoteVideo.srcObject = remoteStream;
+        }
+    
+    
+    };
+
+    // Add local tracks to the peer connection
+    if (!isVideoEnabled){
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    }
+    // Create and send an offer
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    ws.send(JSON.stringify({ type: "offer",  offer: offer }));
+};
+
+
+// 🔴 Toggle Microphone
+toggleAudioBtn.addEventListener("click", () => {
+    isAudioEnabled = !isAudioEnabled;
+    localStream.getAudioTracks().forEach(track => track.enabled = isAudioEnabled);
+    toggleAudioBtn.textContent = isAudioEnabled ? "Mute" : "Unmute";
+});
+
+// 🔴 Toggle Camera
+toggleVideoBtn.addEventListener("click", () => {
+    isVideoEnabled = !isVideoEnabled;
+    localStream.getVideoTracks().forEach(track => track.enabled = isVideoEnabled);
+    toggleVideoBtn.textContent = isVideoEnabled ? "Video Off" : "Video On";
+});
+
+//startCall();
+
+//document.getElementById("startCall").addEventListener("click", startCall);
+*/
+</script>
+
+</body>
+</html>

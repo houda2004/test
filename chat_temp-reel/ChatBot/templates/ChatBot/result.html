@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Résultat de votre évaluation thérapeutique</title>
+</head>
+<body>
+    {% extends 'CHAT_TEMP/main.html' %}
+
+    {% block content %} 
+
+
+    {% if  illnesses_with_selected_symptoms %}
+       <h2>Maladie(s) la/les plus probable(s) :</h2>
+       <p>Nombre de symptômes correspondants : {{ result.max_matching_symptoms }}</p>
+
+        {% if result %}
+
+           {% for illness in result.illnesses %}
+           <li>
+            <strong>{{ illness.name }}</strong> : {{ illness.description }}
+           </li>
+           {% endfor %}
+            {% if  result.symptoms_illnesses %}
+             <h2>Choisissez davantage de symptômes pour que nous puissions mieux évaluer votre cas</h2>
+              <form method="POST">
+               {% csrf_token %}
+                {% for symptoms in result.symptoms_illnesses %}
+
+                   {% for sym in symptoms.unselected_symptoms %}
+                          <input type="checkbox" name="symptoms" value="{{ sym.id }}"> {{ sym.name }}<br>
+                   {% endfor %}
+                {% endfor %}
+                <button type="submit">Soumettre</button>
+              </form>
+            {% endif %}
+        {% endif %}
+    {% else %}
+        <p>Aucune maladie correspondante trouvée.</p>
+    {% endif %}
+
+    
+    {% endblock %}
+</body>
+</html>
+
+</body>
+</html>

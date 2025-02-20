@@ -1,0 +1,11 @@
+pip install django
+pip install django-use-email-as-username 
+python -m pip install -U channels
+python -m pip install Pillow
+python -m pip install -U daphne //il faut la telicharge pour le chat marche
+pip install channels_redis
+pip install redis
+
+pip install djangorestframework  // pour on peux uutiliser react avec djngo 
+pip install pyjwt python-jose cryptography
+pip install agora-token-service

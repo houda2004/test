@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appel Vidéo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+</head>
+
+<body>
+    <style>
+        video {
+  width: 400px;
+  height: 300px;
+  border: 1px solid #ccc;
+  margin: 10px;
+}
+
+#controls {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.control-container {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.control-container:hover {
+  background-color: #0056b3;
+}
+#image_vid{
+  display: none;
+}
+    </style>
+  <h1>Appel Vidéo</h1>
+  <video id="localVideo" autoplay muted></video>
+  <video id="remoteVideo" autoplay></video>
+  <img id='image_vid' src="" alt="">
+  <div id="controls">
+    <button class="control-container" id="camera-btn">
+      <i class="fa-solid fa-video"></i>
+    </button>
+    <button class="control-container" id="mic-btn">
+      <i class="fa-solid fa-microphone"></i>
+    </button>
+    <button class="control-container" id="leave-btn">
+      <i class="fa-solid fa-phone"></i>
+    </button>
+  </div>
+<script>
+const videoCallId = "{{ video_call.id }}";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const localVideo = document.getElementById('localVideo');
+const remoteVideo = document.getElementById('remoteVideo');
+const cameraBtn = document.getElementById('camera-btn');
+const micBtn = document.getElementById('mic-btn');
+const leaveBtn = document.getElementById('leave-btn');
+const image=document.getElementById('image_vid')
+let localStream;
+let peerConnection;
+
+const configuration = {
+  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+};
+const socket = new WebSocket(`ws://${window.location.host}/ws/video-call/${videoCallId}/`);
+    
+// Fonction pour initialiser la connexion RTCPeerConnection
+function initializePeerConnection() {
+  peerConnection = new RTCPeerConnection(configuration);
+
+  // Gérer les flux reçus
+  peerConnection.ontrack = event => {
+    if (event.streams.length > 0) {
+      remoteVideo.srcObject = event.streams[0];
+      image.style.display = "none"; // Cacher l'image
+    } else {
+      // Aucun flux vidéo reçu, afficher une image de profil statique
+
+      //remoteVideo.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXzXNUr2pA83cXri-uzhjN8oSWZAybg65qOw&s"; // Remplacez par le chemin de votre image
+       image.style.display='block'
+      image.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXzXNUr2pA83cXri-uzhjN8oSWZAybg65qOw&s"; // Remplacez par le chemin de votre image
+    }
+  };
+
+  // Gérer les candidats ICE
+  peerConnection.onicecandidate = event => {
+    if (event.candidate) {
+      //const socket = new WebSocket(`ws://${window.location.host}/ws/video-call/${videoCallId}/`);
+      socket.send(JSON.stringify({ type: 'candidate', data: event.candidate }));
+    }
+  };
+}
+
+// Fonction pour répondre à une offre
+async function handleOffer(offer) {
+  try {
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+
+    // Demander l'accès aux médias locaux
+    const confirmAccess = confirm("L'utilisateur 1 veut appeler. Autorisez-vous l'accès à votre caméra et microphone ?");
+    if (!confirmAccess) {
+      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localVideo.srcObject = localStream;
+
+      // Ajouter les pistes locales à la connexion
+      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    }
+    // Créer une réponse SDP et l'envoyer au serveur
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    //const socket = new WebSocket(`ws://${window.location.host}/ws/video-call/${videoCallId}/`);
+    socket.send(JSON.stringify({ type: 'answer', data: peerConnection.localDescription }));
+  } catch (error) {
+    console.error('Erreur lors de la gestion de l’offre :', error);
+  }
+}
+
+// Démarrer un appel en tant qu'utilisateur 1
+async function startCallAsCaller() {
+  try {
+    // Demander l'accès aux médias locaux
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = localStream;
+
+    initializePeerConnection();
+
+    // Ajouter les pistes locales à la connexion
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+    // Créer une offre SDP et l'envoyer au serveur
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+
+    /*const socket = new WebSocket(`ws://${window.location.host}/ws/video-call/${videoCallId}/`);
+    socket.onopen = () => {
+      socket.send(JSON.stringify({ type: 'offer', data: peerConnection.localDescription }));
+    };*/
+    
+    socket.send(JSON.stringify({ type: 'offer', data: peerConnection.localDescription }));
+  } catch (error) {
+    console.error('Erreur lors du démarrage de l’appel :', error);
+  }
+}
+
+// Gérer les messages WebSocket
+function setupWebSocket() {
+ // const socket = new WebSocket(`ws://${window.location.host}/ws/video-call/${videoCallId}/`);
+  socket.onmessage = async event => {
+    const data = JSON.parse(event.data);
+    console.log(data)
+    if (data.type === 'offer') {
+      // Si une offre est reçue, initialiser la connexion et y répondre
+      initializePeerConnection();
+      await handleOffer(data.data);
+    } else if (data.type === 'answer') {
+      // Si une réponse est reçue, définir la description distante
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.data));
+    } else if (data.type === 'candidate') {
+      // Si un candidat ICE est reçu, ajouter-le à la connexion
+      await peerConnection.addIceCandidate(new RTCIceCandidate(data.data));
+    }else if (data.type === "message") {
+      if (data.content === "camera_off") {
+            remoteVideo.srcObject = null;
+            image.style.display = "block"; // Affiche l'image de profil
+        } else if (data.content === "camera_on") {
+            image.style.display = "none"; // Cache l'image
+        }
+    }
+       /*else if (data.type === "camera_off") {
+        remoteVideo.srcObject = null;
+        image.style.display = "block"; // Affiche l'image de profil
+    } else if (data.type === "camera_on") {
+        image.style.display = "none"; // Cache l'image
+    }*/
+  };
+}
+
+// Démarrer l'appel en fonction du rôle de l'utilisateur
+function startCall() {
+  const isCaller = confirm("Voulez-vous initier un appel ?");
+  if (isCaller) {
+    startCallAsCaller();
+  } else {
+    setupWebSocket();
+  }
+}
+
+// Gérer les boutons de contrôle
+function toggleCamera() {
+ /* const videoTrack = localStream.getVideoTracks()[0];
+  videoTrack.enabled = !videoTrack.enabled;
+  cameraBtn.style.backgroundColor = videoTrack.enabled ? '#007bff' : '#f44336';*/
+  if (!localStream) return;
+
+    const videoTrack = localStream.getVideoTracks()[0];
+
+    if (videoTrack.enabled) {
+        videoTrack.enabled = false;
+        videoTrack.stop(); // Libérer la caméra
+        //socket.send(JSON.stringify({ type: "camera_off" }));
+        socket.send(JSON.stringify({ 
+           type: "message", 
+           content: "camera_off" 
+         }));
+        cameraBtn.style.backgroundColor = "#f44336";
+    } else {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                let newVideoTrack = stream.getVideoTracks()[0];
+
+                let sender = peerConnection.getSenders().find(s => s.track.kind === "video");
+                if (sender) {
+                    sender.replaceTrack(newVideoTrack);
+                }
+
+                localStream.removeTrack(videoTrack);
+                localStream.addTrack(newVideoTrack);
+                localVideo.srcObject = localStream;
+
+                //socket.send(JSON.stringify({ type: "camera_on" }));
+                socket.send(JSON.stringify({ 
+                          type: "message", 
+                          content: "camera_on" 
+                   }));
+                cameraBtn.style.backgroundColor = "#007bff";
+            })
+            .catch(error => console.error("Erreur d'activation caméra :", error));
+    }
+
+}
+
+function toggleMic() {
+  const audioTrack = localStream.getAudioTracks()[0];
+  audioTrack.enabled = !audioTrack.enabled;
+  micBtn.style.backgroundColor = audioTrack.enabled ? '#007bff' : '#f44336';
+}
+
+function endCall() {
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
+  }
+  if (peerConnection) {
+    peerConnection.close();
+  }
+  localVideo.srcObject = null;
+  remoteVideo.srcObject = null;
+}
+
+cameraBtn.addEventListener('click', toggleCamera);
+micBtn.addEventListener('click', toggleMic);
+leaveBtn.addEventListener('click', endCall);
+socket.onopen = () => {
+      //socket.send(JSON.stringify({ type: 'offer', data: peerConnection.localDescription }));
+      startCall();
+    };
+
+/*const localVideo = document.getElementById('localVideo');
+const remoteVideo = document.getElementById('remoteVideo');
+const cameraBtn = document.getElementById('camera-btn');
+const micBtn = document.getElementById('mic-btn');
+const leaveBtn = document.getElementById('leave-btn');
+
+let cpt =71
+let localStream;
+let peerConnection;
+
+const configuration = {
+  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+};
+
+async function startCall() {
+  try {
+    cpt=72
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = localStream;
+    cpt=75
+    peerConnection = new RTCPeerConnection(configuration);
+
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    cpt=82
+    peerConnection.ontrack = event => {
+      //remoteVideo.srcObject = event.streams[0];
+      
+      if (event.streams.length > 0) {
+        remoteVideo.srcObject = event.streams[0];
+      } else {
+        // Aucun flux vidéo reçu, afficher une image de profil statique
+        remoteVideo.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXzXNUr2pA83cXri-uzhjN8oSWZAybg65qOw&s"; // Remplacez par le chemin de votre image
+      }
+    
+    };
+
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+
+    // Envoyer l'offre via WebSocket
+    const socket = new WebSocket(`ws://${window.location.host}/ws/video-call/${videoCallId}/`);
+    socket.onopen = () => {
+      socket.send(JSON.stringify({ type: 'offer', data: peerConnection.localDescription }));
+    };
+    cpt=98
+    socket.onmessage = event => {
+      const data = JSON.parse(event.data);
+      console.log(data)
+      if (data.type === 'answer') {
+        peerConnection.setRemoteDescription(new RTCSessionDescription(data.data));
+      } else if (data.type === 'candidate') {
+        peerConnection.addIceCandidate(new RTCIceCandidate(data.data));
+      }
+    };
+  } catch (error) {
+    console.error('Erreur lors du démarrage de l’appel  :', error);
+    console.log(cpt)
+  }
+}
+
+function toggleCamera() {
+  const videoTrack = localStream.getVideoTracks()[0];
+  videoTrack.enabled = !videoTrack.enabled;
+  cameraBtn.style.backgroundColor = videoTrack.enabled ? '#007bff' : '#f44336';
+}
+
+function toggleMic() {
+  const audioTrack = localStream.getAudioTracks()[0];
+  audioTrack.enabled = !audioTrack.enabled;
+  micBtn.style.backgroundColor = audioTrack.enabled ? '#007bff' : '#f44336';
+}
+
+function endCall() {
+  localStream.getTracks().forEach(track => track.stop());
+  peerConnection.close();
+  peerConnection = null;
+  localVideo.srcObject = null;
+  remoteVideo.srcObject = null;
+}
+
+cameraBtn.addEventListener('click', toggleCamera);
+micBtn.addEventListener('click', toggleMic);
+leaveBtn.addEventListener('click', endCall);
+
+startCall();*/
+</script>
+</body>
+</html>

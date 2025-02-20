@@ -1,0 +1,36 @@
+npx create-react-app frontend_react  //Creating a new React
+cd frontend_react
+npm start //react-scripts start
+/----------------------------------------------------------/
+/------------------------commandes-------------------------/
+ npm start
+    Starts the development server.
+
+  npm run build
+    Bundles the app into static files for production.
+
+  npm test
+    Starts the test runner.
+
+  npm run eject
+    Removes this tool and copies build dependencies, configuration files
+    and scripts into the app directory. If you do this, you can’t go back!
+
+We suggest that you begin by typing:
+
+  cd frontend_react
+  npm start
+/-------------------------------------------------------------/
+/-------------------------------------------------------------/
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////
+
+// les bib 
+npm install react-router-dom
+npm install react-toastify
+npm install axios

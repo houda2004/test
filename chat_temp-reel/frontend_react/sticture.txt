@@ -1,0 +1,47 @@
+my-react-app/
+├── public/                    # Fichiers statiques accessibles par le navigateur
+│   ├── index.html             # Fichier HTML principal
+│   └── favicon.ico            # Icône du site
+│
+├── src/                       # Code source de l'application
+│   ├── assets/                # Images, icônes, fichiers statiques
+│   ├── components/            # Composants réutilisables
+│   │   └── Button.jsx
+│   │   └── Card.jsx
+│   │
+│   ├── pages/                 # Pages principales de l'application   on mettre les pages de html de form jsx(components) et on a les apple ldan le index.js ( dans le src)
+│   │   └── HomePage.jsx
+│   │   └── AboutPage.jsx
+│   │
+│   ├── features/              # Fonctionnalités spécifiques (Redux slices, contextes)
+│   │   └── auth/
+│   │       ├── AuthContext.jsx
+│   │       └── authSlice.js
+│   │
+│   ├── hooks/                 # Hooks personnalisés
+│   │   └── useAuth.js
+│   │
+│   ├── services/              # Services pour appels API, gestion de données
+│   │   └── api.js
+│   │
+│   ├── context/               # Contextes globaux (React Context API)
+│   │   └── ThemeContext.jsx
+│   │
+│   ├── styles/                # Fichiers CSS globaux et modules CSS
+│   │   ├── App.css
+│   │   └── variables.css
+│   │
+│   ├── App.jsx                 # Composant racine de l'application   (il faux fait ça si on veux utiliser les page on fait ::)
+|   |                           (<BrowserRouter>
+|   |                                   <Routes>
+|   |                                      <Route path="/" element={<HomePage />} />
+|   |                                      <Route path="/about" element={<AboutPage />} />
+|   |                                  </Routes>
+|   |                              </BrowserRouter>)
+│   ├── index.js  (main)        # Point d'entrée ReactDOM.createRoot  (on appel les pages app.jsx)
+│   └── index.css               # Styles globaux
+│
+├── .env                        # Variables d'environnement
+├── package.json                # Dépendances et scripts
+├── vite.config.js              # Configuration de Vite (ou webpack selon le cas)
+└── README.md                   # Documentation du projet
