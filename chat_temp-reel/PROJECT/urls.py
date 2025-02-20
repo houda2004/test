@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
-
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('Personnale.urls_app')),#Personnale/
@@ -25,3 +25,4 @@ urlpatterns = [
     path('questionnaire/',include('ChatBot.url_app')),
     #path('', TemplateView.as_view(template_name='index.html')),
 ]
+urlpatterns+=staticfiles_urlpatterns()

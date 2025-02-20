@@ -9,3 +9,11 @@ pip install redis
 pip install djangorestframework  // pour on peux uutiliser react avec djngo 
 pip install pyjwt python-jose cryptography
 pip install agora-token-service
+pip install gunicorn
+pip install dj-database-url
+pip install psycopg
+
+
+
+
+$env:DATABASE_URL="postgresql://testchatrealtime_user:EG4vMRvvO4eIhDwYEuY99gWOt0S5NMEi@dpg-curih6a3esus73dp1j30-a.oregon-postgres.render.com/testchatrealtime" 

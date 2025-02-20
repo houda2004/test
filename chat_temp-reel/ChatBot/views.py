@@ -5,9 +5,11 @@ from django.shortcuts import render
 from django.db.models import Count,Q, Max, OuterRef, Subquery
 
 from django.shortcuts import render
-from .forms import QuestionnaireForm
+#from .forms import QuestionnaireForm
 from .models import *
 from Personnale.models import *
+
+
 '''
 def find_matching_illness(form_data):
     """
@@ -69,7 +71,7 @@ def questionnaire_view(request):
 '''
 
 from django.shortcuts import render
-from .forms import QuestionnaireForm
+#from .forms import QuestionnaireForm
 from .models import Ill, QuestionnaireResponse
 
 '''def find_matching_conditions(user_symptoms):
