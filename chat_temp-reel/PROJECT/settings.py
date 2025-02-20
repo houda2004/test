@@ -169,7 +169,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-# Emailing settings $flowerlyly1966$ butterflyonrose20@gmail.com
+# Emailing settings 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # smtp protocol 
 EMAIL_HOST = 'smtp.gmail.com'
