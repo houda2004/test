@@ -12,5 +12,6 @@ urlpatterns = [
     path("resend-otp", views.resend_otp, name="resend-otp"),
     path('Forgot_Password/',views.Forgot_Password,name='ForgotPassword'),
     path('message/', views.get_message, name='get_message'),
+    path('addcontact/<int:id_per>/', views.creat_room, name='addcontact'),
     #path('login/verify_email/',views.verify_email,name='verify_email')
 ]

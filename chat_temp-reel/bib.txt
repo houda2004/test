@@ -16,4 +16,6 @@ pip install psycopg
 pip install uvicorn
 pip install psycopg2
 pip install psycopg2-binary
+pip install dj-database-url
+pip install --upgrade psycopg django
 $env:DATABASE_URL="postgresql://testchatrealtime_user:EG4vMRvvO4eIhDwYEuY99gWOt0S5NMEi@dpg-curih6a3esus73dp1j30-a.oregon-postgres.render.com/testchatrealtime" 

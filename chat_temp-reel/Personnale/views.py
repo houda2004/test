@@ -22,11 +22,21 @@ from custom_user.models import User
 from .forms import *
 from .models import *
 from .tokens import *
-
+from ROOM.models import *
 # Create your views here.
 def home(request):# affiche toute les room in home 
-    return render(request,'Personnale/home.html')
+    psersons=Person.objects.all()
+    return render(request,'Personnale/home.html',{'psersons':psersons})
 
+def creat_room(request, id_per):
+    person = Person.objects.get(id=id_per)
+    user =Person.objects.get(user_compte=request.user)
+    room = Room.objects.create (
+            #username=self.cleaned_data['email'],  # Using email as the username
+            user1=user,
+            user2=person,
+        )
+    return redirect('home')
 #----------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------
 
@@ -94,7 +104,7 @@ def register_user(request):
     data = request.data
     form = UserRegisterForm(data)
 
-    if 'send_code' in data:
+    '''if 'send_code' in data:
         email = data.get('email')
         if email:
             # Envoyer le code de vérification
@@ -109,7 +119,7 @@ def register_user(request):
                     messages.error(request, test['error'])
                     return Response({'message': f'Code sent to {email}'})
         return Response({'error': 'Email is required'}, status=400)
-
+    '''
     if 'sign_up' in data:
         if form.is_valid():
             user = form.save()
@@ -127,7 +137,7 @@ def register_act(request):
         form = UserRegisterForm(request.POST)
 
         # Handle "Send Code" button
-        if 'send_code' in request.POST:
+        '''if 'send_code' in request.POST:
             if form.is_valid():
                 # Send the verification code to the email
                 to_email = form.cleaned_data['email']
@@ -142,9 +152,9 @@ def register_act(request):
                     messages.error(request, test['error'])
             else:
                 messages.error(request, 'Please correct the errors in the form.')
-
+        '''
         # Handle "Sign Up" button
-        elif 'sign_up' in request.POST:
+        if 'sign_up' in request.POST:
             if form.is_valid():
                 # Process the registration and create the user
                 # Assuming you have a User model to save the data
@@ -152,21 +162,21 @@ def register_act(request):
                 password = form.cleaned_data['password']
                 # Create the user and save it (you may want to use Django's User model)
                 # User.objects.create(email=email, password=password)
-                last_verification = EmailVerification.objects.filter(email=email,token=request.session.get('verification_token')).first()#all().order_by('-created_at').
-                if last_verification:    
-                   if last_verification.is_expired:     
-                      person = form.save(commit=True)  # Sauvegarde à la fois User et Person
+                #last_verification = EmailVerification.objects.filter(email=email,token=request.session.get('verification_token')).first()#all().order_by('-created_at').
+                #if last_verification:    
+                   #if last_verification.is_expired:     
+                person = form.save(commit=True)  # Sauvegarde à la fois User et Person
                       # Se connecter directement après l'enregistrement
-                      user = person.user_compte
-                      login(request, user)
+                user = person.user_compte
+                login(request, user)
                       # Optionally, you can clear the verification code after successful registration
-                      last_verification.delete()#EmailVerification.objects.filter(email=to_email).delete()
-                      messages.success(request, 'Your account has been created successfully!')
-                      return redirect('home')  # Redirect to login page or dashboard
-                   else:
-                       messages.error(request, 'Your verification code has expired. Please request a new code.')
-                else:
-                    messages.error(request, 'You are change the email must resende the code or retune the old email.')
+                      #last_verification.delete()#EmailVerification.objects.filter(email=to_email).delete()
+                messages.success(request, 'Your account has been created successfully!')
+                return redirect('home')  # Redirect to login page or dashboard
+                   #else:
+                      # messages.error(request, 'Your verification code has expired. Please request a new code.')
+                #else:
+                  #  messages.error(request, 'You are change the email must resende the code or retune the old email.')
               
             else:
                 messages.error(request, 'Please correct the errors in the form.')

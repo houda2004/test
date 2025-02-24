@@ -130,7 +130,10 @@ import dj_database_url
     }
 }'''
 DATABASES = {
-
+    'default': dj_database_url.config(default='postgresql://postgres:YeIIlblWPIieMvWrPXNUAWZeiAxFuQve@caboose.proxy.rlwy.net:56245/railway'),
+    
+}#'postgresql://postgres:YeIIlblWPIieMvWrPXNUAWZeiAxFuQve@postgres-wq9l.railway.internal:5432/railway'
+'''
     'default': {
 
         'ENGINE': 'django.db.backends.postgresql',
@@ -145,9 +148,7 @@ DATABASES = {
 
         'PORT': '5432',#'<PGPORT>'
 
-    }
-
-}
+    }'''
 '''
 DATABASES = {
     'default':dj_database_url.parse(os.environ.get("DATABASE_URL"))

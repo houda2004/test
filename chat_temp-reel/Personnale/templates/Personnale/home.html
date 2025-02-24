@@ -11,6 +11,11 @@
                    <a href="{% url 'ChatBot:questionnaire' %}">questionnaire</a>
             </div>
         </div>
+        {% for pserson in psersons %}
+           <ul>
+            <li><a href="{% url 'addcontact' id_per=pserson.id %}">{{pserson.user_compte}}</a></li>
+           </ul>
+        {% endfor%}
       </div>
 </header>
 

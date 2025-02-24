@@ -18,7 +18,7 @@ class LoginForm(forms.Form):
 class UserRegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Enter your password'})) 
     confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirm your password'}), label="Confirm Password")
-    code = forms.CharField(max_length=10, label="Code", required=False,widget=forms.TextInput(attrs={'placeholder': 'Enter the code'}))
+    #code = forms.CharField(max_length=10, label="Code", required=False,widget=forms.TextInput(attrs={'placeholder': 'Enter the code'}))
     first_name = forms.CharField(max_length=50)
     last_name = forms.CharField(max_length=50)
     email = forms.EmailField()
@@ -35,10 +35,10 @@ class UserRegisterForm(forms.ModelForm):
         self.fields['first_name'].widget = forms.TextInput(attrs={'type': 'text','placeholder': 'Enter your first name'})  # Type text pour 'first_name'
         self.fields['last_name'].widget = forms.TextInput(attrs={'type': 'text','placeholder': 'Enter your last name'})  # Type text pour 'last_name'
         self.fields['birthday'].widget = forms.DateInput(attrs={'type': 'date'})
-        if 'sign_up' in kwargs.get('data', {}):  # Check if 'sign_up' button was clicked
-          self.fields['code'].required = True  # Make code required if 'Sign Up' is clicked
+        #if 'sign_up' in kwargs.get('data', {}):  # Check if 'sign_up' button was clicked
+          #self.fields['code'].required = True  # Make code required if 'Sign Up' is clicked
         
-        self.order_fields(['first_name', 'last_name', 'email', 'password', 'confirm_password', 'gender', 'birthday', 'nationality', 'code'])
+        self.order_fields(['first_name', 'last_name', 'email', 'password', 'confirm_password', 'gender', 'birthday', 'nationality'])#, 'code'
     
     
     
@@ -46,14 +46,14 @@ class UserRegisterForm(forms.ModelForm):
         cleaned_data = super().clean()
         password = cleaned_data.get("password")
         confirm_password = cleaned_data.get("confirm_password")
-        code = cleaned_data.get("code")
+        #code = cleaned_data.get("code")
         email = cleaned_data.get("email")
         # Check if passwords match
         if password != confirm_password:
             raise forms.ValidationError("The passwords do not match.")
 
         # Check if the code entered by the user matches the generated code
-        if 'Continue' in self.data:
+        '''if 'Continue' in self.data:
            #verification = EmailVerification.objects.filter(email=self.cleaned_data.get("email")).first()
            verification = EmailVerification.objects.filter(email=email).order_by('-created_at').first()
            if verification and verification.is_expired():
@@ -62,7 +62,7 @@ class UserRegisterForm(forms.ModelForm):
            if verification and verification.code != code:
               raise forms.ValidationError(f'Invalid verification code. Please check your email.')
 
-        return cleaned_data
+        return cleaned_data'''
 
     
     def clean_email(self):
