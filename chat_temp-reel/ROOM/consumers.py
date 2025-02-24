@@ -7,6 +7,8 @@ from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
 from .models import Person, Room, Message
+from django.utils.timezone import now
+from django.utils.formats import date_format
 # Connexion à Redis
 #redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -38,7 +40,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Essayer de charger les données JSON
             text_data_json = json.loads(text_data) 
             message = text_data_json['message']
-            sender = text_data_json['sender']
+            #sender = text_data_json['sender']
+            sender = self.scope['user']
             #print(f"Message reçu: {message} | Expéditeur: {sender}")
             cpt=35
             # Récupérer l'utilisateur et la salle
@@ -66,14 +69,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if not is_receiver_connected:
                 # Envoyer une notification si le récepteur n'est pas connecté
                 await database_sync_to_async(self.create_notification)(receiver, user_sender, room)
-            
+            timestamp = date_format(now(), "N j, Y, P")
             # Envoyer le message au groupe
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'chat_message',
                     'message': message,
-                    'sender': sender,
+                    #'sender': sender,
+                    'sender_name':await database_sync_to_async(self.get_name)(user_sender),
+                    'timestamp': str(timestamp),#str(msg.timestamp)
+                    'receiver':await database_sync_to_async(self.get_name)(receiver),
                     #'donne': json.dumps(response)
                     #'msg': {
                     #    'receiver': receiver,
@@ -113,17 +119,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def chat_message(self, event):
         message = event['message']
-        sender_email = event['sender']
+        #sender_email = event['sender']
         #msg = event['msg']
         #last_message= await database_sync_to_async(self.get_last_massege)(sender_email)
         # Envoyer le message au WebSocket
-        await self.send(text_data=json.dumps({
+        '''await self.send(text_data=json.dumps({
             'message': message,
             'sender': sender_email,
             #'msg': msg
             #'last_message':last_message
-        }))
-     
+        }))'''
+        await self.send(text_data=json.dumps(event))
+    def get_name(self, person):
+        return person.user_compte.first_name 
     # Méthodes synchrones pour accéder aux objets de la base de données
     def get_user_by_email(self, email):
         user=User.objects.get(email=email)

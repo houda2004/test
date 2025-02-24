@@ -65,11 +65,21 @@ ASGI_APPLICATION = 'PROJECT.asgi.application'
     },
 }
 '''
-CHANNEL_LAYERS = {
+'''CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
-}
+}'''
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+                     #redis://:password@host:port   on utilise le Redis Cloud 
+                     #"hosts": [os.getenv('REDIS_URL')],  # Charge depuis une variable d'env
+            "hosts": [('redis://:qDZhsqr7kanAedaVdnPDng8NavmFELVo@redis-10838.c279.us-central1-1.gce.redns.redis-cloud.com:10838')],#'127.0.0.1', 6379
+        },
+      },
+    }
 
 
 MIDDLEWARE = [
@@ -113,11 +123,30 @@ import dj_database_url
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
+'''DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
+}'''
+DATABASES = {
+
+    'default': {
+
+        'ENGINE': 'django.db.backends.postgresql',
+
+        'NAME':'railway' ,#'<PGDATABASE>'
+
+        'USER': 'postgres',#'<PGUSER>'
+
+        'PASSWORD': 'YeIIlblWPIieMvWrPXNUAWZeiAxFuQve',#'<PGPASSWORD>'
+
+        'HOST': 'postgres-wq9l.railway.internal',#'<PGHOST>'
+
+        'PORT': '5432',#'<PGPORT>'
+
+    }
+
 }
 '''
 DATABASES = {

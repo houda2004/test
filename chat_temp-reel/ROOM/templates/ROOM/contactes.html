@@ -185,19 +185,19 @@ function connectWebSocket() {
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         //const msg = data.msg;
-        const sender_msg = data.sender;
+        //const sender_msg = data.sender;
         const message= data.message;
         /*if (msg) {
         const receiver = msg.receiver;
         const timestamp = msg.timestamp;
         }*/
-        const isCurrentUser = sender_msg == person_current; 
+        //const isCurrentUser = sender_msg == person_current; 
         console.log(data);
         //document.querySelector('#chat .event .message').innerHTML += '<p><strong> me :</strong> ' + data.message + '</p>';
         document.querySelector('#chat').innerHTML+=`
                         <div class="event mb-3">         
-                                    <div class="message p-3 border rounded ${isCurrentUser ? 'person_current_meaages' : 'other_user_meaages'}">
-                                        <p><strong>`+ sender_msg +`</strong> <small> timestamp </small> </p>
+                                    <div class="message p-3 border rounded ${"{{ request.user.first_name}}" == data.sender_name ? 'person_current_meaages' : 'other_user_meaages'}">
+                                        <p><strong>`+ data.sender_name +`</strong> <small>`+ data.timestamp +` </small> </p>
                                         <p>` + message +`</p>
                                     </div>
                                     <!-- vidio call-->
@@ -225,7 +225,7 @@ function connectWebSocket() {
         chatSocket.send(JSON.stringify({
             'message': message,
             //'username_sender': username_sender,
-            'sender': sender
+            //'sender': sender
         }));
         messageInputDom.value = '';
         } catch (error) {
