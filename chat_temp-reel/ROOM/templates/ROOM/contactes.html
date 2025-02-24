@@ -178,9 +178,10 @@
           messageInputDom.value = '';
         };*/
 function connectWebSocket() {
-    const chatSocket = new WebSocket(
-        'ws://' + window.location.host + '/ws/chat/' + room + '/'  // Remplacer par la logique du nom de la salle
-    );
+    const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const chatSocket = new WebSocket( 
+        protocol + window.location.host + '/ws/chat/' + room + '/'  // Remplacer par la logique du nom de la salle
+    );//'ws://'
 
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
