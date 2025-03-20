@@ -7,7 +7,7 @@ import ChatWindow from './ChatRoom';
 import Navbar from './Navbar';
 import { useNavigate } from "react-router-dom";
 import {FaVideo } from 'react-icons/fa';
-import CreateVideoCall from './CreateVideoCall';
+//import CreateVideoCall from './CreateVideoCall';
 const ChatApp = () => {
     const [rooms, setRooms] = useState([]);
     const [selectedRoom, setSelectedRoom] = useState(null);
@@ -106,8 +106,8 @@ const ChatApp = () => {
                               {/* Le composant CreateVideoCall qui s'affiche de façon absolue */}
                               {isVideoCallVisible && (
                                 <div className="absolute top-1/5 left-1/5 z-50 bg-white p-5 rounded-lg shadow-lg">
-                                  {/* Affiche le composant vidéo ou un contenu quelconque ici */}
-                                  <CreateVideoCall roomId={selectedRoom} />
+                                  {/* Affiche le composant vidéo ou un contenu quelconque ici <CreateVideoCall roomId={selectedRoom} />*/}
+                                  
                         
                                   {/* Bouton pour fermer le composant */}
                                   <button onClick={handleCloseCall} className="mt-4 text-red-500 hover:text-red-700">

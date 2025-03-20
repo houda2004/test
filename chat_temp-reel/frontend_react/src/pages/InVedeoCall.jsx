@@ -1,6 +1,6 @@
 import React, { useEffect, useState,useRef } from "react";
 import AgoraRTC from "agora-rtc-sdk-ng";
-import CosmosNodeNetwork from "./CosmosNodeNetwork";
+//import CosmosNodeNetwork from "./CosmosNodeNetwork";
 //import { VideoCameraIcon, VideoCameraOffIcon, MicrophoneIcon, MicrophoneOffIcon } from '@heroicons/react/solid';
 //import { VideoCameraIcon, MicrophoneIcon } from '@heroicons/react/24/solid';
 //import { VideoCameraOffIcon, MicrophoneOffIcon } from '@heroicons/react/24/outline'; // Importation depuis `outline` pour les icônes "off"
@@ -262,8 +262,8 @@ const VideoCall = () => {
             </div>*/}
             {/* Fond animé avec un gradient <div
                    className="w-screen min-h-screen absolute inset-0 bg-[#010e28] bg-[linear-gradient(to_bottom,_#082740_1px,_transparent_1px),_linear-gradient(to_right,_#082740_1px,_transparent_1px)] [background-size:30px_30px] bg-center overflow-x-hidden animate-bgmove z-0"
-            />*/}
-             <CosmosNodeNetwork />
+            /><CosmosNodeNetwork />*/}
+             
             <h3 className="hidden text-xl font-semibold mb-4">Participants dans l'appel : {userCount}</h3>
             {/* Local Player */}
             {/*<div id="local-player" className="w-72 h-48 bg-gray-800" ref={localPlayerRef}></div>*/}

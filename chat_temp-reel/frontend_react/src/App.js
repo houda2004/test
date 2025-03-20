@@ -6,6 +6,9 @@ import HomePage from './pages/HomePage';
 import RegisterForm from './pages/RegisterPage';
 import axios from "axios";
 import { useEffect, useState } from "react";
+import ChatApp from './pages/ChatApp';
+import ChatRoom from './pages/ChatRoom';
+import VideoCall from './pages/InVedeoCall';
 function App() { const [message, setMessage] = useState("");
 
   /*const getMessage = () => {
