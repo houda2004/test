@@ -11,7 +11,11 @@ from django.utils.timezone import now
 from django.utils.formats import date_format
 # Connexion à Redis
 #redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
-class ChatConsumer(AsyncWebsocketConsumer):
+
+
+
+
+'''class ChatConsumer(AsyncWebsocketConsumer):
     # Dictionnaire pour stocker les utilisateurs connectés par salle
     connected_users = {}
 
@@ -53,12 +57,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Sauvegarder le message dans la base de données
             receiver= await database_sync_to_async(self.get_autre_user_room)(room,user_sender)
             msg = await database_sync_to_async(self.create_message)(user_sender, room, message,receiver)
-            '''response={
-                'message':msg.message,
-                'receiver':msg.receiver,
-                'timestamp':msg.timestamp
-            }
-            '''
+            #response={
+            #    'message':msg.message,
+            #    'receiver':msg.receiver,
+            #    'timestamp':msg.timestamp
+            #}
+            #
+             
+            
+            
             cpt=51
             #if receiver:
               #await database_sync_to_async(self.create_notification)(receiver,user_sender,room)
@@ -89,12 +96,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             if msg:
             # Envoyer le message à un utilisateur spécifique via WebSocket
-             '''await self.send(text_data=json.dumps({
-                'message': msg.message,
-                'sender': user_sender,
-                'receiver': receiver,
-                'timestamp': msg.timestamp
-            }))'''
+            # await self.send(text_data=json.dumps({
+            #    'message': msg.message,
+            #    'sender': user_sender,
+            #    'receiver': receiver,
+            #    'timestamp': msg.timestamp
+            #}))
              
         except json.JSONDecodeError as e:
             print(f"Erreur de décodage JSON: {e}")
@@ -123,12 +130,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         #msg = event['msg']
         #last_message= await database_sync_to_async(self.get_last_massege)(sender_email)
         # Envoyer le message au WebSocket
-        '''await self.send(text_data=json.dumps({
-            'message': message,
-            'sender': sender_email,
-            #'msg': msg
-            #'last_message':last_message
-        }))'''
+        #await self.send(text_data=json.dumps({
+        #   'message': message,
+        #    'sender': sender_email,
+        #    #'msg': msg
+        #    #'last_message':last_message
+        #}))
         await self.send(text_data=json.dumps(event))
     def get_name(self, person):
         return person.user_compte.first_name 
@@ -182,13 +189,332 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Vérifier si l'utilisateur est connecté
         return self.room in self.connected_users and user.id in self.connected_users[self.room]
 
+'''
+
+import redis
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+from .models import Room, Message,Notification,VideoCall
+from custom_user.models import User ,Person
+from channels.db import database_sync_to_async
+from asgiref.sync import sync_to_async
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.timezone import now
+from django.utils.formats import date_format
+from .models import Person, Room, Message
+#from Notifications.utils import send_notification_websocket
+# Connexion à Redis
+#redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
+class ChatConsumer(AsyncWebsocketConsumer):
+    # Dictionnaire pour stocker les utilisateurs connectés par salle
+    connected_users = {}
+
+    async def connect(self):
+        self.room = self.scope['url_route']['kwargs']['room']
+        self.room_group_name = f'chat_{self.room}'
+
+        #if self.scope["user"].is_anonymous:
+            #await self.close()
+        #else:
+          # Join room group
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        await self.accept()
+          # Ajouter l'utilisateur à la liste des utilisateurs connectés
+        await self.add_user_to_connected_list()
+
+    async def disconnect(self, close_code):
+        # Leave room group
+        #await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        # Retirer l'utilisateur de la liste des utilisateurs connectés
+        await self.remove_user_from_connected_list()
+
+        # Quitter le groupe de chat
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+    async def receive(self, text_data):
+        
+      try:
+            # Essayer de charger les données JSON
+        text_data_json = json.loads(text_data) 
+            #message = text_data_json['message']#text_data_json.get("message", "").strip()
+            #sender = text_data_json['sender']
+        sender = self.scope['user']
+        type = text_data_json.get("type")#pour le react
+        msg_type = text_data_json.get("type_msg")#pour le react
+        action = text_data_json.get("action")
+        message_id = text_data_json.get("message_id")
+        if type == "message":
+          if action == "delete_message":              
+               await self.delete_message(message_id)
+          elif (action == "update_message"):
+                 new_content = text_data_json.get("new_content")
+                  # Modifier le message en base de données
+                 try:
+                    await self.update_message(message_id, new_content)#message =                   
+                 except Message.DoesNotExist:
+                                 pass
+          else :  #"create message"  
+              #print(f"Message reçu: {message} | Expéditeur: {sender}")
+            cpt=35
+            # Récupérer l'utilisateur et la salle
+            user_sender =await database_sync_to_async(self.get_user_by_email)(sender)
+            room = await database_sync_to_async(self.get_room_by_id)(self.room)
+            
+            if not user_sender:
+                raise ValueError(f"L'utilisateur avec l'email {sender} n'a pas été trouvé.")
+            # Sauvegarder le message dans la base de données
+            receiver= await database_sync_to_async(self.get_autre_user_room)(room,user_sender)
+            
+            
+            '''msg = await database_sync_to_async(self.create_message)(user_sender, room, message,receiver)
+            cpt=51
+            #if receiver:
+              #await database_sync_to_async(self.create_notification)(receiver,user_sender,room)
+            
+            # Vérifier si le récepteur est connecté
+            is_receiver_connected = await self.is_user_connected(receiver)
+            cpt=55
+            if not is_receiver_connected:
+                # Envoyer une notification si le récepteur n'est pas connecté
+                await database_sync_to_async(self.create_notification)(receiver, user_sender, room)
+            
+            # Envoyer le message au groupe
+            
+            cpt=71
+            timestamp = date_format(now(), "N j, Y, P")
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    #'sender': sender,
+                    'sender_name':await database_sync_to_async(self.get_name)(user_sender),
+                    'timestamp': str(timestamp),#str(msg.timestamp)
+                    'receiver':await database_sync_to_async(self.get_name)(receiver),
+                    #"isCurrentUser": self.scope["user"] == sender  # Permet de savoir si c'est moi qui ai envoyé
+                }
+            )   '''
+              # Gestion des types de messages
+            if msg_type == "text":
+              message = text_data_json.get("message", "").strip()
+              if not message:
+                return
+              msg = await database_sync_to_async(self.create_message)(user_sender, room, message, receiver)
+              #content = {"message": message}
+              content=message
+
+            elif msg_type == "file":
+              file_name = text_data_json.get("fileName")
+              if not file_name:
+                return
+              msg = await database_sync_to_async(self.create_file_message)(user_sender, room, file_name, receiver)
+              #content = {"fileName": file_name}
+              content=file_name
+
+            elif msg_type == "audio":
+               audio_data = text_data_json.get("audioData")
+               if not audio_data:
+                return
+               msg = await database_sync_to_async(self.create_audio_message)(user_sender, room, audio_data, receiver)
+               #content = {"audioData": audio_data}
+               content=audio_data
+
+            else:
+                return
+
+            is_receiver_connected = await self.is_user_connected(receiver)
+            if not is_receiver_connected:
+               await database_sync_to_async(self.create_notification)(receiver, user_sender, room)
+
+            timestamp = date_format(now(), "N j, Y, P")
+            '''content.update({
+              "type": msg_type,
+              "sender_name": await database_sync_to_async(self.get_name)(user_sender),
+              "timestamp": str(timestamp),
+              "receiver": await database_sync_to_async(self.get_name)(receiver),
+            })'''
+
+            #await self.channel_layer.group_send(self.room_group_name, content)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type':"chat_message",# pour apple la fonction "chat_message"
+                    'type_msg':msg_type,
+                    'message': content,
+                    'id':await database_sync_to_async(self.get_id_msg)(msg),
+                    #'sender': sender,
+                    'sender_name':await database_sync_to_async(self.get_name)(user_sender),
+                    'timestamp': str(timestamp),#str(msg.timestamp)
+                    #'receiver':await database_sync_to_async(self.get_name)(receiver),
+                    #"isCurrentUser": self.scope["user"] == sender  # Permet de savoir si c'est moi qui ai envoyé
+                }
+            ) 
+            print(f"📨 Message envoyé à {self.room_group_name} via group_send")  # Debug
+        #elif type == "video_call":  # Si le message est un chat_message
+
+      except json.JSONDecodeError as e:
+            print(f"Erreur de décodage JSON: {e}")
+            await self.send(text_data=json.dumps({
+                'error': 'Données JSON invalides reçues.'
+            }))
+      except ValueError as e:
+            print(f"Erreur de validation des données: {e}")
+            await self.send(text_data=json.dumps({
+                'error': str(e)
+            }))
+      except ObjectDoesNotExist as e:
+            print(f"Objet non trouvé (utilisateur/salle): {e}")
+            await self.send(text_data=json.dumps({
+                'error': 'Utilisateur ou salle introuvable.'
+            }))
+      except Exception as e:
+            print(f"Erreur inattendue: {e}")
+            await self.send(text_data=json.dumps({
+                'error': f'Une erreur est survenue lors du traitement de votre message.{e} ...'
+            }))
+
+    async def chat_message(self, event):#event : L'événement est construit dans la méthode receive() lorsque le serveur reçoit un message d'un utilisateur, puis est transmis à la méthode chat_message() via channel_layer.group_send().
+        #message = event['message']
+        #sender_email = event['sender']
+        #msg = event['msg']
+        #last_message= await database_sync_to_async(self.get_last_massege)(sender_email)
+        # Envoyer le message au WebSocket
+        '''await self.send(text_data=json.dumps({
+            'message': message,
+            'sender': sender_email,
+            #'timestamp': str(msg.timestamp),
+            #'msg': msg
+            #'last_message':last_message
+        }))'''
+        print(f"📡 Message envoyé via WebSocket: {event}")  # Debug
+        await self.send(text_data=json.dumps(event))  # Envoi au WebSocket client
+    async def video_call(self, event):
+        #message = event['message']
+        print(f"📡 video_call envoyé via WebSocket: {event}")  # Debug
+        await self.send(text_data=json.dumps(event))  # Envoi au WebSocket client
+
+    async def delete_message(self, message_id):
+        try:
+            message = await Message.objects.aget(id=message_id)
+            await message.adelete()
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "message_deleted",
+                    "message_id": message_id,
+                }
+            )
+        except Message.DoesNotExist:
+            pass
+
+    async def message_deleted(self, event):
+        await self.send(text_data=json.dumps({
+            "action": "delete_message",
+            "message_id": event["message_id"],
+        }))
+    
+    async def update_message(self, message_id, new_content):
+            message = await Message.objects.aget(id=message_id)
+            message.message = new_content
+            message.message_type='text'
+            await message.asave()
+            #return message
+            await self.channel_layer.group_send(
+                  self.room_group_name,
+                                     {
+                                         "type": "message_updated",
+                                         "message_id": message.id,
+                                         "new_content": message.message,
+                                     }
+            )   
+    async def message_updated(self, event):
+            await self.send(text_data=json.dumps({
+                "action": "update_message",
+                "message_id": event["message_id"],
+                "new_content": event["new_content"],
+            }))
+    # Méthodes synchrones pour accéder aux objets de la base de données
+    def get_user_by_email(self, email):
+        user=User.objects.get(email=email)
+        return Person.objects.get(user_compte=user) 
+    
+    def get_room_by_id(self, room_id):
+        return Room.objects.get(id=room_id)
+    def get_id_msg(self,message):
+        return message.id
+
+    def create_message(self, user_sender, room, message,receiver):
+        return Message.objects.create(
+            sender=user_sender,
+            room=room,
+            message=message,
+            receiver=receiver           
+        )
+    def create_file_message(self, user_sender, room, file_name, receiver):
+      """ Crée un message contenant un fichier """
+      return Message.objects.create(
+        sender=user_sender,
+        room=room,
+        #message=f"File: {file_name}",
+        message_type='file',
+        receiver=receiver,
+        file_url=file_name,  # Stocker le fichierf"/uploads/{file_name}"
+      )
+
+    def create_audio_message(self, user_sender, room, audio_data, receiver):
+      """ Crée un message contenant un enregistrement audio """
+      return Message.objects.create(
+        sender=user_sender,
+        room=room,
+        #message="Audio message",
+        receiver=receiver,
+        message_type='audio',
+        audio_data=audio_data,  # À stocker en base64 ou fichier
+      )
+
+    def get_name(self, person):
+        return person.user_compte.first_name
+    def get_autre_user_room(self,room, user_sender):
+        return  room.get_autre_user_room(user_sender)
+    
+    def get_last_massege(self,sender):
+        user=User.objects.get(email=sender)
+        person=Person.objects.get(user_compte=user)
+        return Message.objects.filter(sender=person).order_by('-id').first()
+    
+    def create_notification(self,receiver,user_sender,room):
+        notification =Notification.objects.create(
+                 user=receiver,# la parson qui recoit la notification
+                 message=f"New message from {user_sender.user_compte.first_name} {user_sender.user_compte.last_name}",
+                 related_room=room,
+                 #related_message=msg
+                )
+        # Déclencher WebSocket immédiatement après la création
+        #send_notification_websocket(notification)
+    
+    async def add_user_to_connected_list(self):
+        # Ajouter l'utilisateur à la liste des utilisateurs connectés
+        user = self.scope['user']
+        if user.is_authenticated:
+            if self.room not in self.connected_users:
+                self.connected_users[self.room] = set()
+            self.connected_users[self.room].add(user.id)
+
+    async def remove_user_from_connected_list(self):
+        # Retirer l'utilisateur de la liste des utilisateurs connectés
+        user = self.scope['user']
+        if user.is_authenticated and self.room in self.connected_users:
+            self.connected_users[self.room].discard(user.id)
+
+    async def is_user_connected(self, user):
+        # Vérifier si l'utilisateur est connecté
+        return self.room in self.connected_users and user.id in self.connected_users[self.room]
 
 
 
 
 
-
-    '''async def add_user_to_connected_list(self):
+'''async def add_user_to_connected_list(self):
         # Ajouter l'utilisateur à la liste des utilisateurs connectés
         user = self.scope['user']
         if user.is_authenticated:
@@ -223,7 +549,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 #from flask_socketio import SocketIO, emit
 
 #------------------------------------------
-    '''
+'''
 class CallConsumer(AsyncWebsocketConsumer):
     connected_users = {}
     async def connect(self):
@@ -316,7 +642,7 @@ class CallConsumer(AsyncWebsocketConsumer):
    #---------------------------------------------------------------------------
    
    
-    '''async def handle_offer(self, data, sender):
+'''async def handle_offer(self, data, sender):
       """Transmet l'offre SDP au destinataire"""
       await self.channel_layer.group_send(
         self.room_group_name,
@@ -374,7 +700,7 @@ class CallConsumer(AsyncWebsocketConsumer):
           await self.send(text_data=json.dumps(event['payload']))
     '''
     #------------------------------------
-    '''async def send_error(self, message):
+'''async def send_error(self, message):
       await self.send(text_data=json.dumps({
         'type': 'error',
         'message': message
@@ -382,7 +708,7 @@ class CallConsumer(AsyncWebsocketConsumer):
     #--------------------------------------  
 
 
-    '''  async def receive(self, text_data):
+'''  async def receive(self, text_data):
         data = json.loads(text_data)
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -392,12 +718,12 @@ class CallConsumer(AsyncWebsocketConsumer):
             }
         )
 '''
-    '''async def call_message(self, event):
+'''async def call_message(self, event):
         message = event['message']
         await self.send(text_data=json.dumps(message))
     '''
     #-------------------------------------------------------
-    '''
+'''
     def get_video_call(self,id_video):
         return  VideoCall.objects.get(id=id_video)
     def get_user_by_email(self, email):
@@ -424,7 +750,7 @@ class CallConsumer(AsyncWebsocketConsumer):
        return self.room_group_name in self.connected_users and user.id in self.connected_users[self.room_group_name]  # Corrigé
     '''
     #-------------------------------------------------------------
-    '''async def add_user_to_connected_list(self):
+'''async def add_user_to_connected_list(self):
         # Ajouter l'utilisateur à la liste des utilisateurs connectés
         user = self.scope['user']
         if user.is_authenticated:
@@ -442,43 +768,6 @@ class CallConsumer(AsyncWebsocketConsumer):
         # Vérifier si l'utilisateur est connecté
         return self.room in self.connected_users and user.id in self.connected_users[self.room]
 '''
-
-'''
-class CallConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = f'call_{self.room_name}'
-
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-
-        await self.accept()
-
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
-
-    async def receive(self, text_data):
-        data = json.loads(text_data)
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'call_message',
-                'message': data
-            }
-        )
-
-    async def call_message(self, event):
-        message = event['message']
-        await self.send(text_data=json.dumps(message))
-
-'''
-
-
 #----------------------------------------------------------------------
 #-----------------------  Call Consumer  ---------------------------
 

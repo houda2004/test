@@ -8,6 +8,9 @@ const HomePage = () => {
     const goToRegister = () => {
         navigate('/register');
     };
+    const goToContacts=() => {
+        navigate('/MyContactes');
+    }
     return (
          
         <div className="flex items-center justify-center h-screen bg-green-100">
@@ -18,6 +21,10 @@ const HomePage = () => {
                 Aller à la page d'inscription
             </button>
             <h1 className="text-3xl font-bold">Welcome to the Home Page! 🎉</h1>
+            
+            <button onClick={goToContacts} className="bg-blue-500 text-white p-2 rounded">
+                Aller à la page des Contacts
+            </button>
         </div>
     );
 };
