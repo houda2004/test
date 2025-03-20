@@ -102,8 +102,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR / 'templates'
-            #BASE_DIR /'frontend_react/build'#/templates  #pour conecter react avec django
+            #BASE_DIR / 'templates'
+            BASE_DIR /'frontend_react/build'#/templates  #pour conecter react avec django
             ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -194,8 +194,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     #os.path.join(BASE_DIR, 'static')
-    BASE_DIR / "static",
-    #BASE_DIR / "frontend_react/build/static",
+    #BASE_DIR / "static",
+    BASE_DIR / "frontend_react/build/static",
 ]
 
 MEDIA_URL = '/media/'
